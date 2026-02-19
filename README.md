@@ -155,3 +155,84 @@ Commercial use, redistribution or modification requires written permission.
 EuroHealthGuide · Est. 2026 by Mickael Vihma
 
 Fast download on android phone https://median.co/share/mbzarnk#apk
+
+
+Privacy Policy — EuroHealthGuide
+Last updated: February 19, 2026
+App: EuroHealthGuide
+Developer: Mickael Vihma
+
+1. Overview
+EuroHealthGuide ("the App") is committed to protecting your privacy. This Privacy Policy explains how we handle information when you use our AI-powered medical information service.
+The short version: We do not collect, store, or share your personal data. Ever.
+
+2. Data We Do NOT Collect
+EuroHealthGuide does not collect, store, process, or share:
+
+Your name, email address, or any contact information
+Your location or GPS data
+Your device identifiers (IMEI, advertising ID, etc.)
+Your conversation history or health questions
+Cookies or tracking data
+Usage analytics or behavioral data
+Any personally identifiable information (PII)
+
+
+3. How the App Works
+When you type a question in EuroHealthGuide:
+
+Your message is sent directly to the DeepSeek AI API to generate a response
+The response is displayed to you in the app
+The conversation exists only on your device during your session
+When you close the app, all conversation data is permanently gone
+Nothing is saved to any server
+
+Your API key (if entered manually) is stored only in your browser's memory for the duration of your session and is never transmitted to us.
+
+4. Third-Party Services
+EuroHealthGuide uses the DeepSeek API to generate medical information responses.
+
+DeepSeek processes your queries to generate responses
+We recommend reviewing DeepSeek's Privacy Policy for details on how they handle API requests
+We do not share any additional personal information with DeepSeek beyond the text of your query
+
+
+5. Medical Information Disclaimer
+EuroHealthGuide provides general health information only. It does not:
+
+Store your health data or medical history
+Create a patient profile
+Share your health questions with doctors, insurers, or any third party
+Diagnose medical conditions
+Replace professional medical advice
+
+In a medical emergency, call 112 immediately.
+
+6. GDPR Compliance (European Users)
+EuroHealthGuide is designed from the ground up in compliance with the General Data Protection Regulation (GDPR) (EU) 2016/679.
+As we do not collect any personal data, the following GDPR principles are fulfilled by design:
+
+Data minimization — No personal data is collected
+Purpose limitation — No data is processed beyond what is necessary
+Storage limitation — No data is stored
+Privacy by Design — Privacy protection is built into the app architecture
+Right to erasure — Not applicable as no data is held
+
+If you have any GDPR-related questions, contact us at the address below.
+
+7. Children's Privacy
+EuroHealthGuide does not knowingly collect data from children under the age of 13. As we collect no data from any users, children's privacy is protected by default.
+The app contains medical information and is intended for users aged 17 and older.
+
+8. Changes to This Policy
+We may update this Privacy Policy from time to time. Any changes will be posted on this page with an updated date. Continued use of the app after changes constitutes acceptance of the updated policy.
+
+9. Contact
+If you have any questions about this Privacy Policy, please contact:
+Mickael Vihma
+GitHub: github.com/MVihma/-eurohealthguide
+
+10. Governing Law
+This Privacy Policy is governed by the laws of the European Union and the applicable laws of Sweden. Any disputes shall be resolved in accordance with EU data protection legislation.
+
+EuroHealthGuide · Est. 2026 by Mickael Vihma
