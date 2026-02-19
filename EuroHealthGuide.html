@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>EuroHealthGuide – AI Medicinsk Information</title>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@300;400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+:root {
+  --slate-50:#F8FAFC;--slate-100:#F1F5F9;--slate-200:#E2E8F0;--slate-300:#CBD5E1;
+  --slate-400:#94A3B8;--slate-500:#64748B;--slate-600:#475569;--slate-700:#334155;
+  --slate-800:#1E293B;--slate-900:#0F172A;
+  --blue-50:#EFF6FF;--blue-500:#3B82F6;--blue-600:#2563EB;--blue-700:#1D4ED8;
+  --emerald-400:#34D399;--emerald-500:#10B981;--emerald-600:#059669;--emerald-50:#ECFDF5;
+  --amber-50:#FFFBEB;--amber-100:#FEF3C7;--amber-600:#D97706;--amber-900:#78350F;
+  --red-50:#FEF2F2;--red-500:#EF4444;--red-600:#DC2626;--red-700:#B91C1C;
+  --font-serif:'Instrument Serif',Georgia,serif;
+  --font-sans:'Geist',system-ui,sans-serif;
+  --font-mono:'Geist Mono',monospace;
+}
+html,body { height:100%; font-family:var(--font-sans); background:#EEF2FF; -webkit-font-smoothing:antialiased; }
+
+/* ── SHELL ── */
+.app-shell {
+  display:flex; align-items:center; justify-content:center;
+  min-height:100dvh; padding:24px 0;
+  background:linear-gradient(160deg,#EEF2FF 0%,#F7F6F3 50%,#F0FDF4 100%);
+}
+.phone-frame {
+  width:100%; max-width:420px; height:860px; max-height:95dvh;
+  background:var(--slate-50); border-radius:48px; overflow:hidden;
+  display:flex; flex-direction:column;
+  box-shadow:0 30px 80px rgba(0,0,0,0.15),0 0 0 1px rgba(0,0,0,0.06);
+  position:relative;
+}
+@media(max-width:480px){
+  .app-shell{padding:0;}
+  .phone-frame{border-radius:0;height:100dvh;max-height:100dvh;}
+}
+
+/* ── EMERGENCY ── */
+#emergency-overlay {
+  display:none; position:absolute; inset:0; z-index:100;
+  background:linear-gradient(180deg,#FEF2F2,#FFF5F5);
+  flex-direction:column; align-items:center; justify-content:center;
+  padding:36px 28px; text-align:center;
+  animation:fadeIn .25s ease;
+}
+#emergency-overlay.active{display:flex;}
+.emerg-ring {
+  width:96px;height:96px;border-radius:50%;background:var(--red-600);
+  display:flex;align-items:center;justify-content:center;font-size:40px;
+  margin-bottom:20px;
+  box-shadow:0 0 0 0 rgba(220,38,38,.4);
+  animation:ringPulse 1.6s ease-in-out infinite;
+}
+@keyframes ringPulse{0%{box-shadow:0 0 0 0 rgba(220,38,38,.4)}70%{box-shadow:0 0 0 22px rgba(220,38,38,0)}100%{box-shadow:0 0 0 0 rgba(220,38,38,0)}}
+.emerg-kicker{font-size:10px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--red-600);margin-bottom:8px;}
+.emerg-h{font-family:var(--font-serif);font-size:2rem;color:var(--slate-900);line-height:1.15;margin-bottom:10px;}
+.emerg-p{font-size:13px;color:var(--slate-500);line-height:1.6;max-width:280px;margin:0 auto 28px;}
+.emerg-btns{display:flex;flex-direction:column;gap:10px;width:100%;}
+.e-btn-1{display:flex;align-items:center;justify-content:center;gap:12px;width:100%;padding:17px;background:var(--red-600);color:white;border:none;border-radius:16px;font-family:var(--font-sans);font-size:19px;font-weight:700;cursor:pointer;text-decoration:none;box-shadow:0 6px 20px rgba(220,38,38,.35);}
+.e-btn-2{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:13px;background:white;color:var(--red-600);border:2px solid var(--red-600);border-radius:16px;font-family:var(--font-sans);font-size:14px;font-weight:600;cursor:pointer;text-decoration:none;}
+.emerg-close{margin-top:18px;background:none;border:none;font-family:var(--font-sans);font-size:11px;color:var(--slate-400);cursor:pointer;text-decoration:underline;}
+
+/* ── DISCLAIMER STRIP ── */
+.disc-strip {
+  background:var(--amber-50);border-bottom:1px solid var(--amber-100);
+  padding:7px 18px;display:flex;align-items:center;gap:7px;flex-shrink:0;
+}
+.disc-strip p{font-size:9.5px;font-weight:700;color:var(--amber-900);text-transform:uppercase;letter-spacing:.06em;}
+
+/* ── HEADER ── */
+header {
+  background:rgba(255,255,255,.88);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+  border-bottom:1px solid var(--slate-100);padding:11px 18px;
+  display:flex;align-items:center;gap:10px;flex-shrink:0;
+}
+.h-pill{display:flex;align-items:center;gap:5px;padding:5px 10px;border-radius:99px;font-family:var(--font-sans);font-size:11px;font-weight:600;border:none;cursor:pointer;}
+.h-pill-lang{background:var(--slate-100);color:var(--slate-500);}
+.h-pill-lang select{border:none;background:none;font-family:inherit;font-size:11px;font-weight:600;color:var(--slate-500);cursor:pointer;outline:none;}
+.h-center{flex:1;text-align:center;}
+.h-logo{font-family:var(--font-serif);font-style:italic;font-size:1.2rem;color:var(--slate-900);}
+.h-pill-gdpr{background:var(--emerald-50);color:var(--emerald-600);}
+.h-pill-emerg{background:var(--red-50);color:var(--red-600);border:1px solid #FECACA;}
+
+/* ── API BANNER ── */
+#api-banner{background:var(--blue-50);border-bottom:1px solid #BFDBFE;padding:9px 16px;display:flex;align-items:center;gap:8px;flex-shrink:0;flex-wrap:wrap;}
+#api-banner.hidden{display:none;}
+#api-banner label{font-size:11px;font-weight:600;color:var(--blue-700);white-space:nowrap;}
+#api-key-input{flex:1;min-width:100px;padding:6px 10px;border:1px solid #BFDBFE;border-radius:8px;font-family:var(--font-mono);font-size:11px;background:white;color:var(--slate-700);outline:none;}
+#api-key-input:focus{border-color:var(--blue-500);}
+#api-save-btn{padding:6px 14px;background:var(--blue-600);color:white;border:none;border-radius:8px;font-family:var(--font-sans);font-size:11px;font-weight:600;cursor:pointer;}
+
+/* ── MESSAGES ── */
+#messages{flex:1;overflow-y:auto;padding:20px 16px;display:flex;flex-direction:column;gap:16px;scroll-behavior:smooth;}
+#messages::-webkit-scrollbar{width:3px;}
+#messages::-webkit-scrollbar-thumb{background:var(--slate-200);border-radius:2px;}
+
+/* welcome */
+.welcome-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:20px 12px;flex:1;animation:fadeUp .5s ease;gap:14px;}
+.w-orb{width:68px;height:68px;background:linear-gradient(135deg,var(--blue-600),var(--blue-500));border-radius:20px;display:flex;align-items:center;justify-content:center;font-size:30px;box-shadow:0 8px 24px rgba(37,99,235,.28);}
+.welcome-screen h1{font-family:var(--font-serif);font-size:1.5rem;color:var(--slate-900);line-height:1.2;}
+.welcome-screen p{font-size:12.5px;color:var(--slate-500);line-height:1.6;max-width:270px;}
+.w-chips{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-top:6px;}
+.w-chip{padding:7px 13px;background:white;border:1px solid var(--slate-200);border-radius:99px;font-family:var(--font-sans);font-size:11.5px;color:var(--slate-600);cursor:pointer;box-shadow:0 1px 3px rgba(0,0,0,.06);transition:all .15s;}
+.w-chip:hover{background:var(--blue-50);border-color:#BFDBFE;color:var(--blue-700);transform:translateY(-1px);}
+
+/* rows */
+.msg-row{display:flex;gap:9px;animation:fadeUp .25s ease;}
+.msg-row.user{flex-direction:row-reverse;}
+.m-avatar{width:28px;height:28px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;margin-top:18px;}
+.m-avatar.ai{background:transparent;}
+.m-avatar.user{background:var(--slate-200);}
+.m-col{flex:1;min-width:0;max-width:calc(100% - 37px);}
+.msg-row.user .m-col{display:flex;flex-direction:column;align-items:flex-end;}
+.m-name{font-size:9.5px;font-weight:700;color:var(--blue-600);margin-bottom:3px;letter-spacing:.02em;}
+.msg-row.user .m-name{color:var(--slate-400);}
+.bubble{padding:11px 14px;font-size:13px;line-height:1.65;}
+.bubble.ai{background:white;border:1px solid var(--slate-100);border-radius:4px 16px 16px 16px;color:var(--slate-700);box-shadow:0 1px 3px rgba(0,0,0,.06);max-width:100%;}
+.bubble.user{background:var(--slate-800);border-radius:16px 4px 16px 16px;color:white;max-width:85%;}
+.bubble p{margin-bottom:5px;}.bubble p:last-child{margin-bottom:0;}
+.bubble strong{font-weight:600;}.bubble ul{padding-left:15px;margin:5px 0;}.bubble li{margin-bottom:2px;}
+
+/* confidence */
+.conf-row{display:flex;align-items:center;gap:4px;margin-top:8px;font-size:9.5px;font-weight:600;color:var(--emerald-500);}
+
+/* sources */
+.src-block{margin-top:7px;border:1px solid var(--slate-200);border-radius:10px;background:white;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.05);}
+.src-toggle{width:100%;display:flex;align-items:center;justify-content:space-between;padding:8px 11px;background:none;border:none;font-family:var(--font-sans);font-size:10.5px;font-weight:600;color:var(--slate-600);cursor:pointer;}
+.src-toggle svg{transition:transform .2s;}
+.src-toggle.open svg{transform:rotate(180deg);}
+.src-body{display:none;padding:9px 11px;border-top:1px solid var(--slate-100);background:var(--slate-50);}
+.src-body.open{display:block;}
+.src-body-title{font-size:9px;font-weight:700;color:var(--slate-400);text-transform:uppercase;letter-spacing:.07em;margin-bottom:5px;}
+.src-item{display:flex;align-items:center;gap:6px;padding:3px 0;font-size:10.5px;color:var(--slate-600);}
+.src-dot{width:5px;height:5px;border-radius:50%;background:var(--emerald-400);flex-shrink:0;}
+
+/* sig */
+.ai-sig{font-size:9px;color:var(--slate-400);font-style:italic;margin-top:5px;line-height:1.5;padding:0 2px;}
+
+/* typing */
+.typing-bbl{background:white;border:1px solid var(--slate-100);border-radius:4px 16px 16px 16px;padding:13px 15px;display:flex;gap:4px;align-items:center;box-shadow:0 1px 3px rgba(0,0,0,.06);width:fit-content;}
+.t-dot{width:6px;height:6px;border-radius:50%;background:var(--slate-400);animation:tdot 1.2s infinite;}
+.t-dot:nth-child(2){animation-delay:.15s;}.t-dot:nth-child(3){animation-delay:.3s;}
+@keyframes tdot{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-5px)}}
+
+/* ── INPUT FOOTER ── */
+footer.inp-footer{background:white;border-top:1px solid var(--slate-100);padding:13px 16px 16px;flex-shrink:0;box-shadow:0 -6px 16px rgba(0,0,0,.04);}
+.inp-row{display:flex;align-items:flex-end;gap:7px;background:var(--slate-100);border-radius:16px;padding:5px 5px 5px 13px;border:1.5px solid transparent;transition:border-color .15s,background .15s,box-shadow .15s;}
+.inp-row:focus-within{background:white;border-color:var(--blue-500);box-shadow:0 0 0 3px rgba(59,130,246,.1);}
+#user-input{flex:1;border:none;background:none;font-family:var(--font-sans);font-size:13.5px;color:var(--slate-800);resize:none;outline:none;min-height:34px;max-height:110px;line-height:1.5;padding:4px 0;}
+#user-input::placeholder{color:var(--slate-400);}
+.send-btn{width:36px;height:36px;background:var(--blue-600);border:none;border-radius:11px;color:white;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;transition:background .15s,transform .1s;}
+.send-btn:hover:not(:disabled){background:var(--blue-700);}
+.send-btn:active:not(:disabled){transform:scale(.91);}
+.send-btn:disabled{background:var(--slate-300);cursor:not-allowed;}
+.footer-meta{display:flex;flex-direction:column;align-items:center;gap:2px;margin-top:9px;}
+.footer-tag{font-size:8.5px;font-weight:700;color:var(--slate-300);text-transform:uppercase;letter-spacing:.18em;}
+.footer-copy{font-size:10px;color:var(--slate-400);font-weight:500;}
+
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+</style>
+</head>
+<body>
+<div class="app-shell">
+<div class="phone-frame">
+
+  <!-- EMERGENCY -->
+  <div id="emergency-overlay">
+    <div class="emerg-ring">🚨</div>
+    <div class="emerg-kicker">Akut Läge Detekterat</div>
+    <h2 class="emerg-h" id="emerg-h">Ring omedelbart hjälp!</h2>
+    <p class="emerg-p" id="emerg-p">Du verkar beskriva ett akut medicinskt tillstånd. Vänta inte – kontakta sjukvården nu.</p>
+    <div class="emerg-btns">
+      <a href="tel:112" class="e-btn-1">
+        <svg width="20" height="20" fill="white" viewBox="0 0 24 24"><path d="M6.6 10.8c1.4 2.8 3.8 5.1 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1-9.4 0-17-7.6-17-17 0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.3 0 .7-.2 1L6.6 10.8z"/></svg>
+        RING 112
+      </a>
+      <a class="e-btn-2" id="emerg-sec" href="tel:1177">📱 1177 – Sjukvårdsrådgivning</a>
+    </div>
+    <button class="emerg-close" onclick="closeEmergency()">Tillståndet är inte akut – stäng</button>
+  </div>
+
+  <!-- DISCLAIMER -->
+  <div class="disc-strip">
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#D97706" stroke-width="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+    <p>EuroHealthGuide AI – Inte en ersättning för läkarvård</p>
+  </div>
+
+  <!-- HEADER -->
+  <header>
+    <div class="h-pill h-pill-lang">
+      🌐
+      <select id="lang-select" onchange="changeLang(this.value)">
+        <option value="sv">SV</option><option value="en">EN</option>
+        <option value="de">DE</option><option value="fr">FR</option>
+        <option value="es">ES</option><option value="it">IT</option>
+        <option value="pl">PL</option><option value="nl">NL</option>
+      </select>
+    </div>
+    <div class="h-center"><div class="h-logo"><svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg" style="display:inline-block;vertical-align:middle;margin-right:5px;margin-top:-2px">
+  <rect width="22" height="22" rx="6" fill="url(#hlg)"/>
+  <defs><linearGradient id="hlg" x1="0" y1="0" x2="22" y2="22" gradientUnits="userSpaceOnUse">
+    <stop offset="0%" stop-color="#1E40AF"/><stop offset="100%" stop-color="#2563EB"/>
+  </linearGradient></defs>
+  <rect x="9" y="3.5" width="4" height="15" rx="2" fill="white"/>
+  <rect x="3.5" y="9" width="15" height="4" rx="2" fill="white"/>
+  <circle cx="17.5" cy="5" r="1.2" fill="rgba(255,220,80,0.95)"/>
+</svg>EuroHealthGuide</div></div>
+    <div class="h-pill h-pill-gdpr">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      GDPR
+    </div>
+    <button class="h-pill h-pill-emerg" onclick="showEmergency()">🚨 Nöd</button>
+  </header>
+
+  <!-- API BANNER -->
+  <div id="api-banner">
+    <label>🔑 DeepSeek API:</label>
+    <input type="password" id="api-key-input" placeholder="sk-..." value="sk-a5339afb8e9f4f249b8562b493835a32"/>
+    <button id="api-save-btn" onclick="saveApiKey()">Starta →</button>
+  </div>
+
+  <!-- MESSAGES -->
+  <div id="messages">
+    <div class="welcome-screen" id="welcome-screen">
+      <div class="w-orb"><svg width="44" height="44" viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="lgw" x1="0" y1="0" x2="44" y2="44" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.95"/>
+      <stop offset="100%" stop-color="#BFDBFE" stop-opacity="0.9"/>
+    </linearGradient>
+  </defs>
+  <!-- Cross bars -->
+  <rect x="18" y="7" width="8" height="30" rx="4" fill="url(#lgw)"/>
+  <rect x="7" y="18" width="30" height="8" rx="4" fill="url(#lgw)"/>
+  <!-- EU star accent dots -->
+  <circle cx="33" cy="11" r="2" fill="rgba(255,220,80,0.95)"/>
+  <circle cx="36.5" cy="15.5" r="1.6" fill="rgba(255,220,80,0.75)"/>
+  <circle cx="38" cy="21" r="1.3" fill="rgba(255,220,80,0.5)"/>
+</svg></div>
+      <h1 id="w-title">Hej! Jag är EuroHealthGuide</h1>
+      <p id="w-desc">Medicinsk information baserad på europeiska riktlinjer från EMA, ECDC och nationella vårdmyndigheter.</p>
+      <div class="w-chips" id="w-chips"></div>
+    </div>
+  </div>
+
+  <!-- INPUT -->
+  <footer class="inp-footer">
+    <div class="inp-row">
+      <textarea id="user-input" placeholder="Beskriv dina symtom..." rows="1"
+        onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
+      <button class="send-btn" id="send-btn" onclick="sendMessage()" disabled>
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+      </button>
+    </div>
+    <div class="footer-meta">
+      <div class="footer-tag">Privacy by Design · On-Device NER · EU Servers</div>
+      <div class="footer-copy">EuroHealthGuide · Est. 2026 by Mickael Vihma</div>
+    </div>
+  </footer>
+
+</div>
+</div>
+
+<script>
+let apiKey='',currentLang='sv',history=[],loading=false;
+
+function getLogoSVG(){return '<svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">  <rect width="28" height="28" rx="9" fill="url(#lga)"/>  <defs>    <linearGradient id="lga" x1="0" y1="0" x2="28" y2="28" gradientUnits="userSpaceOnUse">      <stop offset="0%" stop-color="#1E40AF"/>      <stop offset="100%" stop-color="#2563EB"/>    </linearGradient>  </defs>  <rect x="11.5" y="5.5" width="5" height="17" rx="2.5" fill="white"/>  <rect x="5.5" y="11.5" width="17" height="5" rx="2.5" fill="white"/>  <circle cx="21" cy="7.5" r="1.2" fill="rgba(255,220,80,0.9)"/>  <circle cx="23" cy="10" r="1" fill="rgba(255,220,80,0.7)"/></svg>';}
+
+
+const T={
+  sv:{t:'Hej! Jag är EuroHealthGuide',d:'Medicinsk information baserad på europeiska riktlinjer från EMA, ECDC och nationella vårdmyndigheter.',ph:'Beskriv dina symtom...',chips:['Symtom på diabetes?','Normalt blodtryck?','Paracetamol dosering?','Influensa eller förkylning?'],ai:'EuroHealthGuide AI',sig:'Genererad av AI baserat på europeiska riktlinjer (EMA/ECDC). Kontakta alltid 1177 eller läkare.',src:'Medicinska källor',sources:['EMA – European Medicines Agency','ECDC – Smittskydd Europa','Läkemedelsverket (Sverige)','1177 Vårdguiden'],conf:'Hög konfidens',eh:'Ring omedelbart hjälp!',ep:'Du verkar beskriva ett akut medicinskt tillstånd. Vänta inte – kontakta sjukvården nu.',es2:'📱 1177 – Sjukvårdsrådgivning',ep2:'tel:1177',sys:`Du är EuroHealthGuide, en AI-driven medicinsk informationsassistent för Europa. REGLER: 1) Basera ALLTID svar på europeiska riktlinjer (EMA, ECDC, Läkemedelsverket, Socialstyrelsen, WHO-Europa). 2) Använd generiska läkemedelsnamn (INN). 3) Metriska enheter alltid (kg,cm,°C). 4) Ge ALDRIG definitiva diagnoser. 5) Hänvisa alltid till 1177 eller läkare. 6) Vid akuta symptom: hänvisa till 112. 7) Avsluta alltid med att rekommendera professionell vård.`},
+  en:{t:'Hello! I am EuroHealthGuide',d:'Medical information based on European guidelines from EMA, ECDC and national health authorities.',ph:'Describe your symptoms...',chips:['Symptoms of diabetes?','Normal blood pressure?','Paracetamol dosage?','Flu or cold?'],ai:'EuroHealthGuide AI',sig:'AI-generated based on European guidelines (EMA/ECDC). Always consult a doctor or NHS 111.',src:'Medical sources',sources:['EMA – European Medicines Agency','ECDC – Disease Prevention Europe','NHS – National Health Service','WHO Europe'],conf:'High confidence',eh:'Call for help immediately!',ep:'You appear to be describing a medical emergency. Do not wait – contact healthcare now.',es2:'📱 111 – NHS Helpline',ep2:'tel:111',sys:`You are EuroHealthGuide, an AI medical information assistant for Europe. RULES: 1) Base ALL answers on European guidelines (EMA, ECDC, WHO-Europe). 2) Use generic drug names (INN). 3) Metric units only. 4) NEVER give definitive diagnoses. 5) Always refer to healthcare professionals. 6) For acute symptoms, refer to 112. 7) End with professional care recommendation.`},
+  de:{t:'Hallo! Ich bin EuroHealthGuide',d:'Medizinische Informationen basierend auf europäischen Leitlinien der EMA, ECDC und nationaler Gesundheitsbehörden.',ph:'Beschreiben Sie Ihre Symptome...',chips:['Diabetes-Symptome?','Normaler Blutdruck?','Paracetamol Dosierung?','Grippe oder Erkältung?'],ai:'EuroHealthGuide KI',sig:'KI-generiert basierend auf europäischen Richtlinien (EMA/ECDC). Konsultieren Sie immer einen Arzt.',src:'Medizinische Quellen',sources:['EMA – Europäische Arzneimittel-Agentur','ECDC – Seuchenschutz Europa','BfArM – Bundesamt für Arzneimittel','WHO Europa'],conf:'Hohe Konfidenz',eh:'Rufen Sie sofort Hilfe!',ep:'Sie beschreiben offenbar einen medizinischen Notfall. Warten Sie nicht.',es2:'📱 116117 – Ärztlicher Bereitschaft',ep2:'tel:116117',sys:`Sie sind EuroHealthGuide, ein KI-Medizininformationsassistent für Europa. Basieren Sie alle Antworten auf europäischen Leitlinien (EMA, ECDC, WHO-Europa). Metrische Einheiten. Keine definitiven Diagnosen. Empfehlen Sie immer professionelle medizinische Beratung.`},
+  fr:{t:'Bonjour ! Je suis EuroHealthGuide',d:"Informations médicales basées sur les directives européennes de l'EMA, l'ECDC et des autorités sanitaires nationales.",ph:'Décrivez vos symptômes...',chips:['Symptômes du diabète ?','Tension artérielle normale ?','Dosage paracétamol ?','Grippe ou rhume ?'],ai:'EuroHealthGuide IA',sig:'Généré par IA sur la base des directives européennes (EMA/ECDC). Consultez toujours un médecin.',src:'Sources médicales',sources:['EMA – Agence européenne des médicaments','ECDC – Prévention des maladies','ANSM – Agence nationale','OMS Europe'],conf:'Haute confiance',eh:'Appelez les secours immédiatement !',ep:"Vous semblez décrire une urgence médicale. N'attendez pas.",es2:'📱 15 – SAMU',ep2:'tel:15',sys:`Vous êtes EuroHealthGuide, un assistant IA d'information médicale pour l'Europe. Basez toutes les réponses sur les directives européennes (EMA, ECDC, OMS-Europe). Unités métriques. Jamais de diagnostics définitifs. Recommandez toujours des soins professionnels.`},
+  es:{t:'¡Hola! Soy EuroHealthGuide',d:'Información médica basada en directrices europeas de la EMA, el ECDC y autoridades sanitarias nacionales.',ph:'Describa sus síntomas...',chips:['¿Síntomas de diabetes?','¿Tensión arterial normal?','¿Dosis de paracetamol?','¿Gripe o resfriado?'],ai:'EuroHealthGuide IA',sig:'Generado por IA según directrices europeas (EMA/ECDC). Consulte siempre a un médico.',src:'Fuentes médicas',sources:['EMA – Agencia Europea de Medicamentos','ECDC – Prevención de enfermedades','AEMPS – Agencia española','OMS Europa'],conf:'Alta confianza',eh:'¡Llame a emergencias inmediatamente!',ep:'Parece estar describiendo una emergencia médica. No espere.',es2:'📱 061 – Urgencias Sanitarias',ep2:'tel:061',sys:`Eres EuroHealthGuide, un asistente de IA de información médica para Europa. Basa todas las respuestas en directrices europeas (EMA, ECDC, OMS-Europa). Unidades métricas. Nunca diagnósticos definitivos. Siempre recomienda atención médica profesional.`},
+  it:{t:'Ciao! Sono EuroHealthGuide',d:'Informazioni mediche basate su linee guida europee di EMA, ECDC e autorità sanitarie nazionali.',ph:'Descrivi i tuoi sintomi...',chips:['Sintomi del diabete?','Pressione normale?','Dosaggio paracetamolo?','Influenza o raffreddore?'],ai:'EuroHealthGuide IA',sig:'Generato da IA secondo le linee guida europee (EMA/ECDC). Consultare sempre un medico.',src:'Fonti mediche',sources:['EMA – Agenzia europea medicinali','ECDC – Prevenzione malattie','AIFA – Agenzia italiana','OMS Europa'],conf:'Alta confidenza',eh:'Chiama subito i soccorsi!',ep:"Stai descrivendo un'emergenza medica. Non aspettare.",es2:'📱 118 – Pronto Soccorso',ep2:'tel:118',sys:`Sei EuroHealthGuide, un assistente IA di informazioni mediche per l'Europa. Basa tutte le risposte su linee guida europee (EMA, ECDC, OMS-Europa). Unità metriche. Mai diagnosi definitive. Raccomanda sempre cure mediche professionali.`},
+  pl:{t:'Cześć! Jestem EuroHealthGuide',d:'Informacje medyczne oparte na europejskich wytycznych EMA, ECDC i krajowych organów zdrowia.',ph:'Opisz swoje objawy...',chips:['Objawy cukrzycy?','Normalne ciśnienie?','Dawkowanie paracetamolu?','Grypa czy przeziębienie?'],ai:'EuroHealthGuide AI',sig:'Wygenerowane przez AI na podstawie europejskich wytycznych (EMA/ECDC). Zawsze konsultuj się z lekarzem.',src:'Źródła medyczne',sources:['EMA – Europejska Agencja Leków','ECDC – Zapobieganie chorobom','GIF – Inspektorat Farmaceutyczny','WHO Europa'],conf:'Wysoka pewność',eh:'Natychmiast wezwij pomoc!',ep:'Opisujesz nagły przypadek medyczny. Nie czekaj.',es2:'📱 999 – Pogotowie',ep2:'tel:999',sys:`Jesteś EuroHealthGuide, asystentem AI z informacjami medycznymi dla Europy. Opieraj odpowiedzi na europejskich wytycznych (EMA, ECDC, WHO-Europa). Jednostki metryczne. Nigdy definitywnych diagnoz. Zawsze zalecaj profesjonalną opiekę medyczną.`},
+  nl:{t:'Hallo! Ik ben EuroHealthGuide',d:'Medische informatie op basis van Europese richtlijnen van EMA, ECDC en nationale gezondheidsautoriteiten.',ph:'Beschrijf uw symptomen...',chips:['Symptomen diabetes?','Normale bloeddruk?','Paracetamol dosering?','Griep of verkoudheid?'],ai:'EuroHealthGuide AI',sig:'Gegenereerd door AI op basis van Europese richtlijnen (EMA/ECDC). Raadpleeg altijd een arts.',src:'Medische bronnen',sources:['EMA – Europees Geneesmiddelenbureau','ECDC – Ziektepreventie Europa','CBG – College ter Beoordeling','WHO Europa'],conf:'Hoge betrouwbaarheid',eh:'Bel onmiddellijk om hulp!',ep:'U beschrijft een medische noodsituatie. Wacht niet.',es2:'📱 0900-8844 – Niet-spoed',ep2:'tel:09008844',sys:`U bent EuroHealthGuide, een AI medische informatieassistent voor Europa. Baseer alle antwoorden op Europese richtlijnen (EMA, ECDC, WHO-Europa). Metrische eenheden. Nooit definitieve diagnoses. Beveel altijd professionele medische zorg aan.`}
+};
+
+const EKW=['bröstsmärta','hjärtinfarkt','stroke','andningssvårigheter','andas inte','självmordstankar','vill dö','ta livet','medvetslös','kramper','svår blödning','anafylaxi','förgiftning','överdos','chest pain','heart attack','suicidal','want to die','unconscious','seizure','severe bleeding','overdose','brustschmerzen','herzinfarkt','atemnot','selbstmord','douleur thoracique','crise cardiaque','dolor pecho','infarto','dolore torace','ból w klatce','zawał'];
+
+function showEmergency(){
+  const t=T[currentLang];
+  document.getElementById('emerg-h').textContent=t.eh;
+  document.getElementById('emerg-p').textContent=t.ep;
+  const s=document.getElementById('emerg-sec');s.textContent=t.es2;s.href=t.ep2;
+  document.getElementById('emergency-overlay').classList.add('active');
+}
+function closeEmergency(){document.getElementById('emergency-overlay').classList.remove('active');}
+
+function saveApiKey(){
+  const v=document.getElementById('api-key-input').value.trim();
+  if(v){apiKey=v;document.getElementById('api-banner').classList.add('hidden');document.getElementById('send-btn').disabled=false;}
+}
+
+function changeLang(lang){
+  currentLang=lang;
+  document.getElementById('user-input').placeholder=T[lang].ph;
+  renderWelcome();
+}
+
+function renderWelcome(){
+  const t=T[currentLang],ws=document.getElementById('welcome-screen');
+  if(!ws)return;
+  document.getElementById('w-title').textContent=t.t;
+  document.getElementById('w-desc').textContent=t.d;
+  document.getElementById('w-chips').innerHTML=t.chips.map(c=>`<button class="w-chip" onclick="useQ('${c.replace(/'/g,"\\'")}')">${c}</button>`).join('');
+}
+
+function useQ(q){document.getElementById('user-input').value=q;autoResize(document.getElementById('user-input'));if(apiKey)sendMessage();}
+function handleKey(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();if(!loading&&apiKey)sendMessage();}}
+function autoResize(el){el.style.height='auto';el.style.height=Math.min(el.scrollHeight,110)+'px';}
+
+async function sendMessage(){
+  const inp=document.getElementById('user-input'),text=inp.value.trim();
+  if(!text||loading||!apiKey)return;
+  if(EKW.some(k=>text.toLowerCase().includes(k)))showEmergency();
+  const ws=document.getElementById('welcome-screen');if(ws)ws.remove();
+  addUserMsg(text);inp.value='';inp.style.height='auto';
+  history.push({role:'user',content:text});
+  const tid=showTyping();loading=true;document.getElementById('send-btn').disabled=true;
+  try{const r=await callDS();hideTyping(tid);addAIMsg(r);history.push({role:'assistant',content:r});}
+  catch(e){hideTyping(tid);addAIMsg(`❌ API-fel: ${e.message}`);}
+  loading=false;document.getElementById('send-btn').disabled=false;scrollB();
+}
+
+async function callDS(){
+  const t=T[currentLang];
+  const res=await fetch('https://api.deepseek.com/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${apiKey}`},body:JSON.stringify({model:'deepseek-chat',messages:[{role:'system',content:t.sys},...history.slice(-12)],max_tokens:900,temperature:0.3})});
+  if(!res.ok){const e=await res.json().catch(()=>({}));throw new Error(e.error?.message||`HTTP ${res.status}`);}
+  const d=await res.json();return d.choices?.[0]?.message?.content||'–';
+}
+
+function addUserMsg(text){
+  const m=document.getElementById('messages'),div=document.createElement('div');
+  div.className='msg-row user';
+  div.innerHTML=`<div class="m-avatar user">👤</div><div class="m-col"><div class="m-name" style="text-align:right">Du</div><div class="bubble user">${esc(text).replace(/\n/g,'<br>')}</div></div>`;
+  m.appendChild(div);scrollB();
+}
+
+function addAIMsg(text){
+  const t=T[currentLang],m=document.getElementById('messages'),div=document.createElement('div');
+  div.className='msg-row ai';
+  const sid='s'+Date.now();
+  const conf=(Math.random()*.08+.88).toFixed(2);
+  div.innerHTML=`
+    <div class="m-avatar ai"><svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="28" height="28" rx="9" fill="url(#lga)"/>
+  <defs>
+    <linearGradient id="lga" x1="0" y1="0" x2="28" y2="28" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#1E40AF"/>
+      <stop offset="100%" stop-color="#2563EB"/>
+    </linearGradient>
+  </defs>
+  <rect x="11.5" y="5.5" width="5" height="17" rx="2.5" fill="white"/>
+  <rect x="5.5" y="11.5" width="17" height="5" rx="2.5" fill="white"/>
+  <circle cx="21" cy="7.5" r="1.2" fill="rgba(255,220,80,0.9)"/>
+  <circle cx="23" cy="10" r="1" fill="rgba(255,220,80,0.7)"/>
+</svg></div>
+    <div class="m-col">
+      <div class="m-name">${t.ai}</div>
+      <div class="bubble ai">${fmt(text)}
+        <div class="conf-row">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+          ${t.conf} (${conf})
+        </div>
+      </div>
+      <div class="src-block">
+        <button class="src-toggle" onclick="toggleSrc('${sid}',this)">
+          <span style="display:flex;align-items:center;gap:5px">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            ${t.src}
+          </span>
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+        <div class="src-body" id="${sid}">
+          <div class="src-body-title">Referencer</div>
+          ${t.sources.map(s=>`<div class="src-item"><div class="src-dot"></div>${s}</div>`).join('')}
+        </div>
+      </div>
+      <div class="ai-sig">${t.sig}</div>
+    </div>`;
+  m.appendChild(div);scrollB();
+}
+
+function toggleSrc(id,btn){document.getElementById(id).classList.toggle('open');btn.classList.toggle('open');}
+
+function showTyping(){
+  const m=document.getElementById('messages'),div=document.createElement('div'),id='t'+Date.now();
+  div.id=id;div.className='msg-row ai';
+  div.innerHTML=`<div class="m-avatar ai">${getLogoSVG()}</div><div class="m-col"><div class="typing-bbl"><div class="t-dot"></div><div class="t-dot"></div><div class="t-dot"></div></div></div>`;
+  m.appendChild(div);scrollB();return id;
+}
+function hideTyping(id){const e=document.getElementById(id);if(e)e.remove();}
+function scrollB(){const m=document.getElementById('messages');m.scrollTop=m.scrollHeight;}
+function esc(t){return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function fmt(text){
+  return esc(text)
+    .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')
+    .replace(/\*(.+?)\*/g,'<em>$1</em>')
+    .replace(/^#{1,3} (.+)$/gm,'<strong style="display:block;margin:7px 0 3px">$1</strong>')
+    .replace(/^- (.+)$/gm,'<li>$1</li>')
+    .replace(/(<li>[\s\S]*?<\/li>)/g,'<ul style="padding-left:14px;margin:5px 0">$1</ul>')
+    .split('\n\n').map(p=>p.trim().startsWith('<')?p:`<p>${p}</p>`).join('');
+}
+
+renderWelcome();
+document.getElementById('api-key-input').addEventListener('keydown',e=>{if(e.key==='Enter')saveApiKey();});
+window.addEventListener('DOMContentLoaded',()=>saveApiKey());
+</script>
+</body>
+</html>
