@@ -153,3 +153,5 @@ Commercial use, redistribution or modification requires written permission.
 ---
 
 EuroHealthGuide · Est. 2026 by Mickael Vihma
+
+Fast download on android phone https://median.co/share/mbzarnk#apk
